@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+        <title>JavaScript</title>
+		<style>
+			table{border-collapse:collapse;}
+			td{border:1px solid;}
+		</style>
+		
+    </head>
+    <body>
+		<table>
+			<tr>
+				<td>商品名</td><td>价格</td><td>操作</td>
+			</tr>
+			<tr><td><input type="hidden" value="1">水杯</td><td>29</td><td><a class="buy" href="javascript:;">购买</a></td></tr>
+			<tr><td><input type="hidden" value="2">电脑</td><td>4999</td><td><a class="buy" href="javascript:;">购买</a></td></tr>
+			<tr><td><input type="hidden" value="3">手机</td><td>1999</td><td><a class="buy" href="javascript:;">购买</a></td></tr>
+		</table>
+		<button onclick="window.location='cart.html';">查看购物车</button>
+    </body>
+    <script type="text/javascript">
+    	//1.获取所有的a
+    	var oA = document.getElementsByTagName("a");
+    	//2.给所有的a添加点击事件
+    	for(var i = 0;i < oA.length;i ++){
+    		//给每一个a（商品)添加一个自定义属性,统计购买商品的数量
+    		oA[i].num = 0;
+    		//给每一个a添加点击事件
+    		oA[i].onclick = function(){
+    			this.num ++; //数量递增
+    			//找出隐藏表单的value值
+    			var id = this.parentNode.parentNode.firstChild.firstChild.value;
+    			//找出商品名
+    			var name = this.parentNode.parentNode.firstChild.lastChild.nodeValue;
+    			//找出商品价格
+    			var price = this.parentNode.previousSibling.innerText;
+    			
+    			//document.cookie = "key=value;expires=date;path=/"
+    			//{"key":"value","key":"value"}
+   				//'{"id":id,"name":"name","price":price,"num":this.num}'
+    			//'{"id":' + id + ',"name":"' + name + '","price":' + price + ',"num":' + this.num + '}'
+    			//设计cookie中的value(把所有需要的信息设计成json对象)
+    			var cookieValue = '{"id":' + id + ',"name":"' + name + '","price":' + price + ',"num":' + this.num + '}';
+    			var cookieKey = "product_" + id;
+    			//有效期
+    			var date = new Date();
+    			date.setDate(date.getDate() + 3);
+    			//创建cookie
+    			document.cookie = cookieKey + "=" + cookieValue + ";expires=" + date + ";path=/";
+    			console.log(document.cookie)
+    		}
+    	}
+    </script>
+</html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<style type="text/css">
+			* {
+				margin: 0;
+				padding: 0;
+			}
+			
+			.cartList {
+				width: 1205px;
+			}
+			
+			ul {
+				list-style: none;
+			}
+			
+			.cartHead {
+				border: 1px solid black;
+				height: 50px;
+			}
+			
+			.cartHead li {
+				width: 200px;
+				height: 50px;
+				float: left;
+				font: 32px/50px "楷体";
+				text-align: center;
+			}
+			
+			.goodInfo {
+				border: 1px solid black;
+				border-top: none;
+				height: 50px;
+			}
+			
+			.goodInfo li {
+				float: left;
+				width: 200px;
+				height: 50px;
+				float: left;
+				font: 24px/50px "";
+				text-align: center;
+			}
+			
+			.goodInfo li input {
+				width: 30px;
+				text-align: center;
+			}
+			
+			.goodInfo li.num a {
+				display: inline-block;
+				width: 10px;
+				height: 20px;
+				font: 12px/20px "";
+				background: #ddd;
+				text-decoration: none;
+			}
+			
+			.goodInfo li img {
+				width: 40px;
+				height: 40px;
+				margin-top: 5px;
+				text-align: center;
+			}
+			
+			.blank {
+				height: 50px;
+				font: 32px/50px "";
+				text-align: center;
+				border: 1px solid black;
+				border-top: none;
+				display: none;
+			}
+		</style>
+		<script type="text/javascript" src="js/jquery-1.11.3.js"></script>
+		<script type="text/javascript" src="js/jquery.cookie.js"></script>
+	</head>
+
+	<body>
+		<div class="cartList">
+			<ul class="cartHead">
+				<li>缩略图</li>
+				<li>品名</li>
+				<li>单价</li>
+				<li>数量</li>
+				<li>小计</li>
+				<li>操作</li>
+			</ul>
+			<!--<ul class="goodInfo" data-good-id="sp1">
+				<li><img src="img/1.jpg" /></li>
+				<li>测试</li>
+				<li>30</li>
+				<li class="num">
+					<a href="javascript:;" class="minus">-</a>
+					<input type="text" name="" id="" value="2" />
+					<a href="javascript:;" class="plus">+</a>
+				</li>
+				<li class="total">60</li>
+				<li><a href="javascript:;" class="del">删除</a></li>
+			</ul>-->
+			<div class="blank">
+				您的购物车空空如也~~
+			</div>
+		</div>
+		<script type="text/javascript">
+			$(function(){
+				//获取cookie
+				var cartStr = $.cookie("cart") ? $.cookie("cart") : "";
+				if(!cartStr){
+					$(".blank").css("display","block");
+				}else{
+					var cartObj = convertCartStrToObj(cartStr);
+					/*
+					 * {
+					 * 	   "sp1" :{
+						  	  name : "",
+						  	  price :  ,
+						  	  src : ,
+						  	  num
+						  },
+						  "sp2" :{
+						  	
+						  }
+					 * }
+					 */
+					for(var id in cartObj){
+						var goodId = cartObj[id];
+						var str = `<ul class="goodInfo" data-good-id="${id}">
+									<li><img src="${goodId.src}" /></li>
+									<li>${goodId.name}</li>
+									<li>${goodId.price}</li>
+									<li class="num">
+										<a href="javascript:;" class="minus">-</a>
+										<input type="text" name="" id="" value="${goodId.num}" />
+										<a href="javascript:;" class="plus">+</a>
+									</li>
+									<li class="total">${parseFloat(goodId.price) * goodId.num}</li>
+									<li><a href="javascript:;" class="del">删除</a></li>
+								</ul>`
+						$(str).appendTo($(".cartList"));
+					}
+				}
+				//给删除按钮添加事件
+				$(".goodInfo .del").click(function(){
+					//把删除的元素id取出来
+					var id = $(this).parents(".goodInfo").remove().attr("data-good-id");
+					$(this).parents(".goodInfo").remove();
+					var cartStr = $.cookie("cart") ? $.cookie("cart") : "";
+					var cartObj = convertCartStrToObj(cartStr);
+					//delete
+					delete cartObj[id];
+					console.log(id,cartObj);
+					$.cookie("cart",JSON.stringify(cartObj),{expires : 7,path : "/"});
+				})
+				//给加号添加事件
+				$(".goodInfo .num .plus").click(function(){
+					//获取id
+					var id = $(this).parents(".goodInfo").attr("data-good-id");
+					//获取cookie
+					var cartStr = $.cookie("cart") ? $.cookie("cart") : "";
+					var cartObj = convertCartStrToObj(cartStr);
+					cartObj[id].num += 1;
+					$(this).siblings("input").val(cartObj[id].num);
+					//小计
+					$(this).parent().siblings(".total").html(cartObj[id].num * parseFloat(cartObj[id].price));
+					//重新加入cookie
+					$.cookie("cart",JSON.stringify(cartObj),{expires : 7,path : "/"})
+				})
+				//-
+				$(".goodInfo .num .minus").click(function(){
+					//获取id
+					var id = $(this).parents(".goodInfo").attr("data-good-id");
+					//获取cookie
+					var cartStr = $.cookie("cart") ? $.cookie("cart") : "";
+					var cartObj = convertCartStrToObj(cartStr);
+					if(cartObj[id].num > 1){
+						cartObj[id].num -= 1;
+						$(this).siblings("input").val(cartObj[id].num);
+						//小计
+						$(this).parent().siblings(".total").html(cartObj[id].num * parseFloat(cartObj[id].price));
+						//重新加入cookie
+						$.cookie("cart",JSON.stringify(cartObj),{expires : 7,path : "/"})
+					}
+					
+				})
+				//给文本框加失焦事件
+				$(".goodInfo .num input").blur(function(){
+					var id = $(this).parents(".goodInfo").attr("data-good-id");
+					var cartStr = $.cookie("cart") ? $.cookie("cart") : "";
+					var cartObj = convertCartStrToObj(cartStr);
+					var re = /^\d+$/;
+					if(re.test($(this).val()) && parseInt($(this).val()) > 0){
+						cartObj[id].num = $(this).val();
+					}else{
+						cartObj[id].num = 1;
+						$(this).val(1);
+					}
+					$(this).parent().siblings(".total").html(cartObj[id].num * parseFloat(cartObj[id].price));
+					$.cookie("cart",JSON.stringify(cartObj),{expires : 7,path : "/"})
+				})
+			})
+			function convertCartStrToObj(cartStr){
+				if(!cartStr){
+					return {};
+				}
+				return JSON.parse(cartStr);
+			}
+		</script>
+	</body>
+
+</html>
